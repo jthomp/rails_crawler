@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+
+# Suppress RubyGems platform warnings
+$VERBOSE = nil
+
+require 'optparse'
+require_relative '../lib/rails_crawler'
+
+options = {}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: rails_crawler [options] URL"
+
+  opts.on("-c", "--concurrent N", Integer, "Max concurrent requests (default: 5)") do |n|
+    options[:max_concurrent] = n
+  end
+
+  opts.on("-d", "--delay N", Float, "Delay between requests in seconds (default: 0.1)") do |n|
+    options[:delay_between_requests] = n
+  end
+
+  opts.on("-f", "--format FORMAT", [:console, :json, :csv], "Output format (console, json, csv)") do |format|
+    options[:output_format] = format
+  end
+
+  opts.on("-o", "--output FILE", "Output file (for json/csv formats)") do |file|
+    options[:output_file] = file
+  end
+
+  opts.on("-e", "--external", "Follow external links") do
+    options[:follow_external_links] = true
+  end
+
+  opts.on("-t", "--timeout N", Integer, "Request timeout in seconds (default: 30)") do |n|
+    options[:timeout] = n
+  end
+
+  opts.on("-v", "--verbose", "Verbose output") do
+    ENV['VERBOSE'] = 'true'
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+
+  opts.on_tail("--version", "Show version") do
+    puts RailsCrawler::VERSION
+    exit
+  end
+end.parse!
+
+if ARGV.empty?
+  puts "Error: URL is required"
+  puts "Use --help for usage information"
+  exit 1
+end
+
+base_url = ARGV[0]
+
+begin
+  report = RailsCrawler.crawl(base_url, options)
+  exit report.healthy? ? 0 : 1
+rescue RailsCrawler::Error => e
+  puts "Error: #{e.message}".colorize(:red)
+  exit 1
+rescue Interrupt
+  puts "\n🛑 Crawling interrupted by user".colorize(:yellow)
+  exit 1

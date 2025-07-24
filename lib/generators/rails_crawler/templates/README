@@ -1,0 +1,26 @@
+===============================================================================
+
+  RailsCrawler has been installed!
+
+  Configuration file created at: config/initializers/rails_crawler.rb
+
+  Available rake tasks:
+    rake crawler:crawl              # Crawl entire site
+    rake crawler:crawl_models       # Crawl only Rails model URLs
+    rake crawler:config             # Show configuration
+
+  Environment variables:
+    BASE_URL=http://localhost:3000 rake crawler:crawl
+    FORMAT=json OUTPUT_FILE=report.json rake crawler:crawl
+    MAX_CONCURRENT=10 rake crawler:crawl
+    FOLLOW_EXTERNAL=true rake crawler:crawl
+
+  Command line usage:
+    rails_crawler http://localhost:3000
+    rails_crawler --format json --output report.json http://localhost:3000
+
+  Ruby usage:
+    RailsCrawler.crawl('http://localhost:3000')
+    RailsCrawler.crawl('http://localhost:3000', max_concurrent: 10)
+
+===============================================================================
