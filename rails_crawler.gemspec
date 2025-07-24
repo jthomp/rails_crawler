@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = "A Rails-friendly web crawler for checking page health and broken links"
   spec.description = "Crawl your Rails application to detect broken pages, HTTP errors, and broken links. Perfect for CI/CD health checks."
-  spec.homepage = "https://github.com/jthomp/rails-crawler"
+  spec.homepage = "https://github.com/jthomp/rails_crawler"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
 
