@@ -30,15 +30,15 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Runtime dependencies
-  spec.add_dependency "nokogiri", "~> 1.13"
-  spec.add_dependency "concurrent-ruby", "~> 1.1"
   spec.add_dependency "colorize", "~> 0.8"
+  spec.add_dependency "concurrent-ruby", "~> 1.1"
   spec.add_dependency "csv", "~> 3.3"
+  spec.add_dependency "nokogiri", "~> 1.13"
 
   # Development dependencies
   spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_development_dependency "webmock", "~> 3.14"
-  spec.add_development_dependency "vcr", "~> 6.1"
   spec.add_development_dependency "rubocop", "~> 1.21"
   spec.add_development_dependency "simplecov", "~> 0.13"
+  spec.add_development_dependency "vcr", "~> 6.1"
+  spec.add_development_dependency "webmock", "~> 3.14"
 end
