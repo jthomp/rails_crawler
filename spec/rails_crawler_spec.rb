@@ -33,8 +33,8 @@ RSpec.describe RailsCrawler do
       allow($stdout).to receive(:flush)
       
       WebMock.stub_request(:get, "http://example.com")
-        .to_return(status: 200, body: "<html><body><a href="/test">Test</a></body></html>")
-      
+        .to_return(status: 200, body: "<html><body><a href='/test'>Test</a></body></html>")
+
       WebMock.stub_request(:get, "http://example.com/test")
         .to_return(status: 200, body: "<html><body>Test page</body></html>")
     end
