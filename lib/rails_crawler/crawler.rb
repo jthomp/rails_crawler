@@ -1,16 +1,16 @@
-require 'net/http'
-require 'uri'
-require 'nokogiri'
-require 'set'
-require 'concurrent'
-require 'colorize'
+require "net/http"
+require "uri"
+require "nokogiri"
+require "set"
+require "concurrent"
+require "colorize"
 
 module RailsCrawler
   class Crawler
     attr_reader :base_url, :visited_urls, :failed_pages, :broken_links, :options
 
     def initialize(base_url, options = {})
-      @base_url = base_url.chomp('/')
+      @base_url = base_url.chomp("/")
       @options = RailsCrawler.configuration.to_h.merge(options)
       @visited_urls = Concurrent::Set.new
       @failed_pages = Concurrent::Array.new
@@ -22,7 +22,7 @@ module RailsCrawler
 
     def crawl_site
       puts "🕷️  Starting crawl of #{@base_url}".colorize(:blue)
-      puts "🔧 max_concurrent setting: #{@options[:max_concurrent].inspect} (#{@options[:max_concurrent].class})" if ENV['DEBUG_WEBMOCK']
+      puts "🔧 max_concurrent setting: #{@options[:max_concurrent].inspect} (#{@options[:max_concurrent].class})" if ENV["DEBUG_WEBMOCK"]
       
       initial_urls = get_initial_urls
       @url_queue.concat(initial_urls)
@@ -34,7 +34,7 @@ module RailsCrawler
     
     # Sequential crawling method - works reliably without closure issues
     def crawl_site_sequential
-      puts "🔄 Using sequential processing (avoids Ruby closure bugs)" if ENV['DEBUG_WEBMOCK']
+      puts "🔄 Using sequential processing (avoids Ruby closure bugs)" if ENV["DEBUG_WEBMOCK"]
       
       iteration = 0
       max_iterations = 1000
@@ -43,8 +43,8 @@ module RailsCrawler
         iteration += 1
         url = @url_queue.shift
         
-        puts "📋 Iteration #{iteration}: Processing #{url}" if ENV['DEBUG_WEBMOCK']
-        puts "    Queue remaining: #{@url_queue.length}" if ENV['DEBUG_WEBMOCK']
+        puts "📋 Iteration #{iteration}: Processing #{url}" if ENV["DEBUG_WEBMOCK"]
+        puts "    Queue remaining: #{@url_queue.length}" if ENV["DEBUG_WEBMOCK"]
         
         next if url.nil? || @visited_urls.include?(url) || should_exclude_url?(url)
         
@@ -52,33 +52,33 @@ module RailsCrawler
         @visited_urls.add(url)
         count = @pages_checked.increment
         
-        show_progress if count % 5 == 0 || ENV['VERBOSE']
+        show_progress if count % 5 == 0 || ENV["VERBOSE"]
         
         begin
           uri = URI(url)
           http = Net::HTTP.new(uri.host, uri.port)
-          http.use_ssl = uri.scheme == 'https'
+          http.use_ssl = uri.scheme == "https"
           http.read_timeout = @options[:timeout]
           http.open_timeout = @options[:timeout]
           
           request = Net::HTTP::Get.new(uri)
-          request['User-Agent'] = @options[:user_agent]
+          request["User-Agent"] = @options[:user_agent]
           
           response = http.request(request)
           
           case response.code.to_i
           when 200..299
-            puts "  ✓ #{url} (#{response.code})".colorize(:green) if ENV['VERBOSE'] || ENV['DEBUG_WEBMOCK']
+            puts "  ✓ #{url} (#{response.code})".colorize(:green) if ENV["VERBOSE"] || ENV["DEBUG_WEBMOCK"]
             extract_and_queue_links(url, response.body) if response.body
           when 300..399
-            location = response['location']
+            location = response["location"]
             if location
-              puts "  → #{url} redirects to #{location} (#{response.code})".colorize(:yellow) if ENV['VERBOSE'] || ENV['DEBUG_WEBMOCK']
+              puts "  → #{url} redirects to #{location} (#{response.code})".colorize(:yellow) if ENV["VERBOSE"] || ENV["DEBUG_WEBMOCK"]
               resolved_location = resolve_url(url, location)
               @url_queue << resolved_location unless @visited_urls.include?(resolved_location)
             end
           else
-            puts "  ✗ #{url} (#{response.code})".colorize(:red) unless ENV['RSPEC_RUNNING'] || (!ENV['VERBOSE'] && !ENV['DEBUG_WEBMOCK'])
+            puts "  ✗ #{url} (#{response.code})".colorize(:red) unless ENV["RSPEC_RUNNING"] || (!ENV["VERBOSE"] && !ENV["DEBUG_WEBMOCK"])
             @failed_pages << {
               url: url,
               status: response.code.to_i,
@@ -88,10 +88,10 @@ module RailsCrawler
           end
           
         rescue => e
-          puts "  ✗ #{url} - Exception: #{e.message}".colorize(:red) unless ENV['RSPEC_RUNNING'] || (!ENV['VERBOSE'] && !ENV['DEBUG_WEBMOCK'])
+          puts "  ✗ #{url} - Exception: #{e.message}".colorize(:red) unless ENV["RSPEC_RUNNING"] || (!ENV["VERBOSE"] && !ENV["DEBUG_WEBMOCK"])
           @failed_pages << {
             url: url,
-            status: 'exception',
+            status: "exception",
             error: e.message,
             timestamp: Time.now.iso8601
           }
@@ -185,28 +185,28 @@ module RailsCrawler
       count = @pages_checked.increment
       
       # Show progress every 5 pages or if verbose
-      show_progress if count % 5 == 0 || ENV['VERBOSE']
+      show_progress if count % 5 == 0 || ENV["VERBOSE"]
       
       begin
         uri = URI(url)
         http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = uri.scheme == 'https'
+        http.use_ssl = uri.scheme == "https"
         http.read_timeout = @options[:timeout]
         http.open_timeout = @options[:timeout]
         
         request = Net::HTTP::Get.new(uri)
-        request['User-Agent'] = @options[:user_agent]
+        request["User-Agent"] = @options[:user_agent]
         
         response = http.request(request)
         
         case response.code.to_i
         when 200..299
-          puts "  ✓ #{url} (#{response.code})".colorize(:green) if ENV['VERBOSE']
+          puts "  ✓ #{url} (#{response.code})".colorize(:green) if ENV["VERBOSE"]
           extract_and_queue_links(url, response.body) if response.body
         when 300..399
-          location = response['location']
+          location = response["location"]
           if location
-            puts "  → #{url} redirects to #{location} (#{response.code})".colorize(:yellow) if ENV['VERBOSE']
+            puts "  → #{url} redirects to #{location} (#{response.code})".colorize(:yellow) if ENV["VERBOSE"]
             resolved_location = resolve_url(url, location)
             @url_queue << resolved_location unless @visited_urls.include?(resolved_location)
           end
@@ -221,10 +221,10 @@ module RailsCrawler
         end
         
       rescue => e
-        puts "  ✗ #{url} - Exception: #{e.message}".colorize(:red) if ENV['VERBOSE']
+        puts "  ✗ #{url} - Exception: #{e.message}".colorize(:red) if ENV["VERBOSE"]
         @failed_pages << {
           url: url,
-          status: 'exception',
+          status: "exception",
           error: e.message,
           timestamp: Time.now.iso8601
         }
@@ -240,15 +240,15 @@ module RailsCrawler
         doc = Nokogiri::HTML(html)
         links_found = []
         
-        doc.css('a[href]').each do |link|
-          href = link['href']&.strip
+        doc.css("a[href]").each do |link|
+          href = link["href"]&.strip
           next if href.nil? || href.empty?
           
           begin
             link_url = resolve_url(page_url, href)
             next if should_exclude_url?(link_url)
             
-            # Check if it's an internal link or if we should follow external links
+            # Check if it"s an internal link or if we should follow external links
             link_uri = URI(link_url)
             base_uri = URI(@base_url)
             
@@ -256,12 +256,12 @@ module RailsCrawler
               unless @visited_urls.include?(link_url)
                 @url_queue << link_url
                 links_found << link_url
-                puts "  📎 Queued: #{link_url}" if ENV['VERBOSE'] || ENV['DEBUG_WEBMOCK']
+                puts "  📎 Queued: #{link_url}" if ENV["VERBOSE"] || ENV["DEBUG_WEBMOCK"]
               else
-                puts "  ↻ Already visited: #{link_url}" if ENV['VERBOSE'] || ENV['DEBUG_WEBMOCK']
+                puts "  ↻ Already visited: #{link_url}" if ENV["VERBOSE"] || ENV["DEBUG_WEBMOCK"]
               end
             else
-              puts "  🌐 External (skipped): #{link_url}" if ENV['VERBOSE'] || ENV['DEBUG_WEBMOCK']
+              puts "  🌐 External (skipped): #{link_url}" if ENV["VERBOSE"] || ENV["DEBUG_WEBMOCK"]
             end
             
           rescue URI::InvalidURIError => e
@@ -274,10 +274,10 @@ module RailsCrawler
           end
         end
         
-        puts "  📋 Found #{links_found.length} new links on #{page_url}: #{links_found}" if ENV['DEBUG_WEBMOCK']
+        puts "  📋 Found #{links_found.length} new links on #{page_url}: #{links_found}" if ENV["DEBUG_WEBMOCK"]
         
       rescue => e
-        puts "  ⚠️  Error parsing HTML for #{page_url}: #{e.message}".colorize(:yellow) if ENV['VERBOSE']
+        puts "  ⚠️  Error parsing HTML for #{page_url}: #{e.message}".colorize(:yellow) if ENV["VERBOSE"]
       end
     end
 

@@ -7,7 +7,7 @@ require "vcr"
 require "timeout"
 
 # Set environment variable to indicate we're running tests
-ENV['RSPEC_RUNNING'] = 'true'
+ENV["RSPEC_RUNNING"] = "true"
 
 # Disable real HTTP requests during tests
 WebMock.disable_net_connect!(allow_localhost: false)

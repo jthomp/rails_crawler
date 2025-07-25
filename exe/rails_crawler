@@ -3,8 +3,8 @@
 # Suppress RubyGems platform warnings
 $VERBOSE = nil
 
-require 'optparse'
-require_relative '../lib/rails_crawler'
+require "optparse"
+require_relative "../lib/rails_crawler"
 
 options = {}
 
@@ -36,7 +36,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("-v", "--verbose", "Verbose output") do
-    ENV['VERBOSE'] = 'true'
+    ENV["VERBOSE"] = "true"
   end
 
   opts.on_tail("-h", "--help", "Show this message") do
