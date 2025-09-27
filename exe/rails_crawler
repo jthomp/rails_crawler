@@ -67,3 +67,4 @@ rescue RailsCrawler::Error => e
 rescue Interrupt
   puts "\n🛑 Crawling interrupted by user".colorize(:yellow)
   exit 1
+end

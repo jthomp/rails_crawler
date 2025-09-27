@@ -211,7 +211,7 @@ module RailsCrawler
             @url_queue << resolved_location unless @visited_urls.include?(resolved_location)
           end
         else
-          puts "  ✗ #{url} (#{response.code})".colorize(:red)
+          puts "  ✗ #{url} (#{response.code})".colorize(:red) unless ENV["RSPEC_RUNNING"] || (!ENV["VERBOSE"] && !ENV["DEBUG_WEBMOCK"])
           @failed_pages << {
             url: url,
             status: response.code.to_i,
@@ -221,7 +221,7 @@ module RailsCrawler
         end
         
       rescue => e
-        puts "  ✗ #{url} - Exception: #{e.message}".colorize(:red) if ENV["VERBOSE"]
+        puts "  ✗ #{url} - Exception: #{e.message}".colorize(:red) unless ENV["RSPEC_RUNNING"] || !ENV["VERBOSE"]
         @failed_pages << {
           url: url,
           status: "exception",
