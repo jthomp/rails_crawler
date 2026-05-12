@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rails_crawler (0.3.3)
+    rails_crawler (0.3.4)
       colorize (~> 0.8)
       concurrent-ruby (~> 1.1)
       csv (~> 3.3)
@@ -131,6 +131,7 @@ PLATFORMS
 
 DEPENDENCIES
   irb
+  nokogiri (>= 1.18)
   rails_crawler!
   rake (~> 13.0)
   rspec (~> 3.0)
