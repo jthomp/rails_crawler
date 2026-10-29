@@ -28,90 +28,75 @@ namespace :crawler do
     exit 1 unless report.healthy?
   end
 
-  desc "Crawl only Rails model-based URLs (products, categories, etc.)"
+  desc "Check every model-backed page (products, categories, pages, articles, FAQs, zones, ...)"
   task :crawl_models => :environment do
     base_url = ENV["BASE_URL"] || RailsCrawler.configuration.base_url
-    
+
     if base_url.nil?
       puts "❌ No base URL configured. Set BASE_URL environment variable or configure in initializer.".colorize(:red)
       exit 1
     end
 
-    puts "🚀 Crawling Rails model URLs..."
-    
-    failed_urls = []
-    total_checked = 0
+    config = RailsCrawler.configuration
+    base_url = base_url.chomp("/")
+    checked_urls = []
+    failed_pages = []
 
-    # Check products
-    if defined?(Product)
-      puts "📦 Checking product pages..."
-      Product.find_each.with_index do |product, index|
-        begin
-          path = Rails.application.routes.url_helpers.product_page_path(product)
-          url = "#{base_url}#{path}"
-          
-          uri = URI(url)
-          response = Net::HTTP.get_response(uri)
-          total_checked += 1
-          
-          unless (200..299).include?(response.code.to_i)
-            failed_urls << { url: url, status: response.code, model: "Product", id: product.id }
-            puts "  ❌ Product #{product.id}: #{url} (#{response.code})".colorize(:red)
-          else
-            puts "  ✅ Product #{product.id}" if index % 50 == 0
-          end
-        rescue => e
-          failed_urls << { url: url, status: "error", model: "Product", id: product.id, error: e.message }
-          puts "  ❌ Product #{product.id}: #{e.message}".colorize(:red)
+    # Requests one page, recording it in checked_urls and, if it is anything
+    # but a 2xx, in failed_pages.
+    check_url = lambda do |url, label|
+      response = RailsCrawler::Request.get(url)
+      checked_urls << url
+
+      unless (200..299).cover?(response.code.to_i)
+        failed_pages << { url: url, status: response.code.to_i, error: "#{label}: #{response.message}",
+                          timestamp: Time.now.iso8601 }
+        puts "  ❌ #{label}: #{url} (#{response.code})".colorize(:red)
+      end
+
+      sleep(config.delay_between_requests) if config.delay_between_requests.to_f.positive?
+    rescue StandardError => e
+      checked_urls << url
+      failed_pages << { url: url, status: "exception", error: "#{label}: #{e.message}", timestamp: Time.now.iso8601 }
+      puts "  ❌ #{label}: #{url} - #{e.message}".colorize(:red)
+    end
+
+    puts "🚀 Checking model pages at #{base_url}..."
+
+    config.model_checks.each do |check|
+      if (reason = check.skip_reason)
+        puts "⏭️  #{check.label}: skipped (#{reason})".colorize(:yellow)
+        next
+      end
+
+      puts "🔎 Checking #{check.label} pages..."
+      before_checked = checked_urls.length
+      before_failed = failed_pages.length
+
+      begin
+        check.each_page do |record, path|
+          check_url.call("#{base_url}#{path}", "#{check.label} #{record.id}")
         end
+      rescue StandardError => e
+        puts "  ⚠️  Could not list #{check.label} pages: #{e.message}".colorize(:yellow)
+        failed_pages << { url: "#{check.label} pages", status: "exception", error: e.message,
+                          timestamp: Time.now.iso8601 }
       end
+
+      count = checked_urls.length - before_checked
+      failures = failed_pages.length - before_failed
+      puts "   #{check.label}: #{count} checked, #{failures} failed".colorize(failures.zero? ? :green : :red)
     end
 
-    # Check categories
-    if defined?(Category)
-      puts "📂 Checking category pages..."
-      Category.find_each.with_index do |category, index|
-        begin
-          path = Rails.application.routes.url_helpers.category_page_path(category)
-          url = "#{base_url}#{path}"
-          
-          uri = URI(url)
-          response = Net::HTTP.get_response(uri)
-          total_checked += 1
-          
-          unless (200..299).include?(response.code.to_i)
-            failed_urls << { url: url, status: response.code, model: "Category", id: category.id }
-            puts "  ❌ Category #{category.id}: #{url} (#{response.code})".colorize(:red)
-          else
-            puts "  ✅ Category #{category.id}" if index % 20 == 0
-          end
-        rescue => e
-          failed_urls << { url: url, status: "error", model: "Category", id: category.id, error: e.message }
-          puts "  ❌ Category #{category.id}: #{e.message}".colorize(:red)
-        end
-      end
-    end
-    
-    # TODO: Add static pages
-
-    # Report results
-    puts "\n" + "="*50
-    puts "📊 RESULTS".colorize(:blue).bold
-    puts "="*50
-    puts "Total URLs checked: #{total_checked}"
-    puts "Failed URLs: #{failed_urls.count}".colorize(failed_urls.empty? ? :green : :red)
-    
-    if failed_urls.any?
-      puts "\n🚨 Failed URLs:".colorize(:red).bold
-      failed_urls.each do |failure|
-        puts "  #{failure[:model]} ID #{failure[:id]}: #{failure[:url]} (#{failure[:status]})"
-        puts "    Error: #{failure[:error]}" if failure[:error]
-      end
-    else
-      puts "\n🎉 All model URLs are working!".colorize(:green).bold
+    if config.static_paths.any?
+      puts "🔎 Checking static paths..."
+      config.static_paths.each { |path| check_url.call("#{base_url}#{path}", "Static #{path}") }
     end
 
-    exit 1 unless failed_urls.empty?
+    report = RailsCrawler::Report.new(checked_urls, failed_pages, [])
+    report.generate(ENV["FORMAT"]&.to_sym || config.output_format, ENV["OUTPUT_FILE"] || config.output_file)
+
+    exit 1 unless report.healthy?
   end
 
   desc "Show crawler configuration"
@@ -128,5 +113,7 @@ namespace :crawler do
     puts "   Output File: #{config.output_file || "Console only"}"
     puts "   Exclude Patterns: #{config.exclude_patterns.map(&:source).join(", ")}"
     puts "   Include Patterns: #{config.include_patterns.any? ? config.include_patterns.map(&:source).join(", ") : "All URLs"}"
+    puts "   Model Checks: #{config.model_checks.map(&:label).join(", ")}"
+    puts "   Static Paths: #{config.static_paths.any? ? config.static_paths.join(", ") : "None"}"
   end
 end

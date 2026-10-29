@@ -30,6 +30,15 @@ RailsCrawler.configure do |config|
   # Patterns to include (if specified, only URLs matching these will be crawled)
   # config.include_patterns = [/\/products/, /\/categories/]
 
+  # The model-backed pages `rake crawler:crawl_models` checks and the full
+  # crawl seeds its queue from. The defaults cover Product, Category, Page,
+  # Article, ArticleTag, Faq and Zone; a check whose model or route this app
+  # lacks is skipped. Add your own or replace the list:
+  # config.model_checks << RailsCrawler::ModelCheck.new("Recipe", routes: :recipe_path, scope: :published)
+
+  # Fixed paths checked alongside the model pages (listing pages and such)
+  # config.static_paths = ["/articles", "/faqs", "/new-arrivals"]
+
   # Default output format (:console, :json, :csv)
   config.output_format = :console
 

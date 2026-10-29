@@ -5,7 +5,8 @@ module RailsCrawler
     attr_accessor :base_url, :max_concurrent, :delay_between_requests, 
                   :follow_external_links, :user_agent, :timeout,
                   :exclude_patterns, :include_patterns,
-                  :output_format, :output_file
+                  :output_format, :output_file,
+                  :model_checks, :static_paths
 
     def initialize
       @base_url = nil
@@ -18,6 +19,10 @@ module RailsCrawler
       @include_patterns = []
       @output_format = :console # :console, :json, :csv
       @output_file = nil
+      # The model-backed page types to check; see ModelCheck.defaults.
+      @model_checks = ModelCheck.defaults
+      # Fixed paths ("/articles", "/faqs") checked alongside the model pages.
+      @static_paths = []
     end
 
     def to_h
@@ -31,7 +36,9 @@ module RailsCrawler
         exclude_patterns: @exclude_patterns,
         include_patterns: @include_patterns,
         output_format: @output_format,
-        output_file: @output_file
+        output_file: @output_file,
+        model_checks: @model_checks,
+        static_paths: @static_paths
       }
     end
   end

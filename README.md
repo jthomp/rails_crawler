@@ -40,7 +40,7 @@ rails generate rails_crawler:install
 # Crawl your entire site
 rake crawler:crawl
 
-# Crawl only Rails model URLs (products, categories, etc.)
+# Check only model-backed pages (products, categories, pages, articles, FAQs, zones, ...)
 rake crawler:crawl_models
 
 # Show current configuration
@@ -135,15 +135,45 @@ end
 | `include_patterns` | Array of regex patterns to include | `[]` (all) |
 | `output_format` | Output format (`:console`, `:json`, `:csv`) | `:console` |
 | `output_file` | Output file path | `nil` (console only) |
+| `model_checks` | Model-backed page types to check (see below) | `RailsCrawler::ModelCheck.defaults` |
+| `static_paths` | Fixed paths checked alongside the model pages | `[]` |
 
 ## Rails Integration
 
 The gem automatically integrates with Rails and will:
 
-- Discover product URLs using `Product.find_each` and `product_page_path`
-- Discover category URLs using `Category.find_each` and `category_page_path`
+- Seed the crawl with every model-backed page it knows about (see below)
 - Set appropriate defaults for development/production environments
 - Provide rake tasks for easy integration
+
+### Model-backed pages
+
+`rake crawler:crawl_models` requests every page a model record owns, and the full crawl seeds its queue with the same URLs. Each page type is a `RailsCrawler::ModelCheck` naming the model, the route helper, the attribute passed to it, and which records have a page. The defaults:
+
+| Model | Route helper | Param | Records |
+|-------|--------------|-------|---------|
+| `Product` | `product_page_path` | `permalink` | `Product.visible` |
+| `Category` | `category_page_path` | `permalink` | `Category.visible` |
+| `Page` | `page_page_path` or `static_page_path` | `permalink` | `Page.visible` |
+| `Article` | `article_page_path` | `permalink` | `Article.published` |
+| `ArticleTag` | `article_tag_path` | `permalink` | `ArticleTag.with_published_articles` |
+| `Faq` | `faq_path` | `id` | `Faq.visible` |
+| `Zone` | `zone_page_path` | `number` | all |
+
+A check whose model or route helper the app does not define is skipped, and the article checks are skipped while `Siteparam#articles_enabled?` is off. Add your own page types, or replace the list, in the initializer:
+
+```ruby
+config.model_checks << RailsCrawler::ModelCheck.new(
+  "Recipe",
+  routes: :recipe_path,   # or several to try in order: %i[recipe_path old_recipe_path]
+  param: :slug,           # default :permalink
+  scope: :published,      # a class method, a lambda returning the records, or nil for all
+  enabled: -> { Feature.on?(:recipes) }
+)
+
+# Listing pages and other fixed paths to check too
+config.static_paths = ["/articles", "/faqs", "/new-arrivals"]
+```
 
 ## CI/CD Integration
 

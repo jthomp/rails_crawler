@@ -5,7 +5,9 @@ original_verbose = $VERBOSE
 $VERBOSE = nil
 
 require_relative "rails_crawler/version"
+require_relative "rails_crawler/model_check"
 require_relative "rails_crawler/configuration"
+require_relative "rails_crawler/request"
 require_relative "rails_crawler/crawler"
 require_relative "rails_crawler/report"
 

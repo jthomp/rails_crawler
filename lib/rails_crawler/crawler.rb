@@ -125,40 +125,17 @@ module RailsCrawler
       urls
     end
 
+    # The pages the configured model checks and static paths name. A check
+    # that fails (no database, say) is reported and the rest still run.
     def extract_rails_urls
-      urls = []
-      
-      # Try to get product URLs
-      if defined?(Product) && Product.respond_to?(:find_each)
-        Product.find_each do |product|
-          if Rails.application.routes.url_helpers.respond_to?(:product_page_path)
-            path = Rails.application.routes.url_helpers.product_page_path(product.permalink)
-            urls << "#{@base_url}#{path}"
-          end
-        end
-      end
-      
-      # Try to get category URLs
-      if defined?(Category) && Category.respond_to?(:find_each)
-        Category.find_each do |category|
-          if Rails.application.routes.url_helpers.respond_to?(:category_page_path)
-            path = Rails.application.routes.url_helpers.category_page_path(category.permalink)
-            urls << "#{@base_url}#{path}"
-          end
-        end
+      urls = Array(@options[:model_checks]).flat_map do |check|
+        check.available? ? check.urls(@base_url) : []
+      rescue StandardError => e
+        puts "⚠️  Could not list #{check.label} URLs: #{e.message}".colorize(:yellow)
+        []
       end
 
-      # Try to get static page URLs
-      if defined?(Page) && Page.respond_to?(:find_each)
-        Page.find_each do |page|
-          if Rails.application.routes.url_helpers.respond_to?(:static_page_path)
-            path = Rails.application.routes.url_helpers.static_page_path(page.permalink)
-            urls << "#{@base_url}#{path}"
-          end
-        end
-      end
-      
-      urls
+      urls.concat(Array(@options[:static_paths]).map { |path| "#{@base_url}#{path}" })
     end
 
     def show_progress
