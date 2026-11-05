@@ -62,17 +62,17 @@ RSpec.describe RailsCrawler do
       allow($stdout).to receive(:write)
       allow($stdout).to receive(:print)
       allow($stdout).to receive(:flush)
-      
+
       WebMock.stub_request(:get, "http://example.com")
-        .to_return(status: 200, body: "<html><body><a href='/test'>Test</a></body></html>")
+             .to_return(status: 200, body: "<html><body><a href='/test'>Test</a></body></html>")
 
       WebMock.stub_request(:get, "http://example.com/test")
-        .to_return(status: 200, body: "<html><body>Test page</body></html>")
+             .to_return(status: 200, body: "<html><body>Test page</body></html>")
     end
 
     it "crawls a site and returns a report" do
       report = RailsCrawler.crawl("http://example.com")
-      
+
       expect(report).to be_a(RailsCrawler::Report)
       expect(report.visited_urls).to include("http://example.com")
       expect(report.healthy?).to be true
@@ -80,9 +80,9 @@ RSpec.describe RailsCrawler do
 
     it "crawls a base URL given without a scheme" do
       WebMock.stub_request(:get, "https://www.example.com")
-        .to_return(status: 200, body: "<html><body><a href='/test'>Test</a></body></html>")
+             .to_return(status: 200, body: "<html><body><a href='/test'>Test</a></body></html>")
       WebMock.stub_request(:get, "https://www.example.com/test")
-        .to_return(status: 200, body: "<html><body>Test page</body></html>")
+             .to_return(status: 200, body: "<html><body>Test page</body></html>")
 
       report = RailsCrawler.crawl("www.example.com")
 

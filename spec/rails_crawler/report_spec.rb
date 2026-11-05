@@ -21,7 +21,7 @@ RSpec.describe RailsCrawler::Report do
   describe "#healthy?" do
     context "when there are no failures" do
       let(:report) { described_class.new(visited_urls, [], []) }
-      
+
       it "returns true" do
         expect(report.healthy?).to be true
       end
@@ -37,7 +37,7 @@ RSpec.describe RailsCrawler::Report do
   describe "#summary" do
     it "returns correct summary data" do
       summary = report.summary
-      
+
       expect(summary[:pages_checked]).to eq(2)
       expect(summary[:failed_pages]).to eq(1)
       expect(summary[:broken_links]).to eq(1)
@@ -64,7 +64,7 @@ RSpec.describe RailsCrawler::Report do
       it "generates JSON output" do
         json_output = report.generate(:json)
         parsed = JSON.parse(json_output)
-        
+
         expect(parsed["summary"]["pages_checked"]).to eq(2)
         expect(parsed["failed_pages"].length).to eq(1)
         expect(parsed["broken_links"].length).to eq(1)
@@ -73,7 +73,7 @@ RSpec.describe RailsCrawler::Report do
       it "saves to file when output_file is provided" do
         Tempfile.create("test_report.json") do |file|
           report.generate(:json, file.path)
-          
+
           content = File.read(file.path)
           parsed = JSON.parse(content)
           expect(parsed["summary"]["pages_checked"]).to eq(2)
@@ -85,7 +85,7 @@ RSpec.describe RailsCrawler::Report do
       it "generates CSV file" do
         Tempfile.create("test_report.csv") do |file|
           result_file = report.generate(:csv, file.path)
-          
+
           expect(File.exist?(result_file)).to be true
           content = File.read(result_file)
           expect(content).to include("SUMMARY")

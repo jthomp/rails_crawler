@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Suppress RubyGems platform warnings
 $VERBOSE = nil
 
@@ -19,7 +21,7 @@ namespace :crawler do
   end
 
   desc "Crawl the entire site for broken pages and links"
-  task :crawl => :environment do
+  task crawl: :environment do
     base_url = resolve_base_url.call
 
     options = {}
@@ -34,13 +36,13 @@ namespace :crawler do
     puts
 
     report = RailsCrawler.crawl(base_url, options)
-    
+
     # Exit with error code if issues found (useful for CI/CD)
     exit 1 unless report.healthy?
   end
 
   desc "Check every model-backed page (products, categories, pages, articles, FAQs, zones, ...)"
-  task :crawl_models => :environment do
+  task crawl_models: :environment do
     base_url = resolve_base_url.call
 
     config = RailsCrawler.configuration
@@ -117,7 +119,8 @@ namespace :crawler do
     puts "   Output Format: #{config.output_format}"
     puts "   Output File: #{config.output_file || "Console only"}"
     puts "   Exclude Patterns: #{config.exclude_patterns.map(&:source).join(", ")}"
-    puts "   Include Patterns: #{config.include_patterns.any? ? config.include_patterns.map(&:source).join(", ") : "All URLs"}"
+    include_patterns = config.include_patterns.map(&:source)
+    puts "   Include Patterns: #{include_patterns.any? ? include_patterns.join(", ") : "All URLs"}"
     puts "   Model Checks: #{config.model_checks.map(&:label).join(", ")}"
     puts "   Static Paths: #{config.static_paths.any? ? config.static_paths.join(", ") : "None"}"
   end

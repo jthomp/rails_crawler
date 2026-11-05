@@ -4,6 +4,7 @@ require "rails/generators"
 
 module RailsCrawler
   module Generators
+    # `rails generate rails_crawler:install`: writes the initializer.
     class InstallGenerator < Rails::Generators::Base
       source_root File.expand_path("templates", __dir__)
 

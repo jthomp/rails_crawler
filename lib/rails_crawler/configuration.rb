@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 module RailsCrawler
+  # Crawl settings and their defaults; set through RailsCrawler.configure.
   class Configuration
-    attr_accessor :base_url, :max_concurrent, :delay_between_requests, 
+    attr_accessor :base_url, :max_concurrent, :delay_between_requests,
                   :follow_external_links, :user_agent, :timeout,
                   :exclude_patterns, :include_patterns,
                   :output_format, :output_file,

@@ -24,9 +24,9 @@ RSpec.describe RailsCrawler::Configuration do
     it "returns configuration as hash" do
       config.base_url = "http://example.com"
       config.max_concurrent = 10
-      
+
       hash = config.to_h
-      
+
       expect(hash[:base_url]).to eq("http://example.com")
       expect(hash[:max_concurrent]).to eq(10)
       expect(hash).to have_key(:delay_between_requests)

@@ -16,11 +16,12 @@ require_relative "rails_crawler/report"
 # Restore original verbosity
 $VERBOSE = original_verbose
 
+# Crawls a Rails application's pages and links and reports the ones that fail.
 module RailsCrawler
   class Error < StandardError; end
 
   class << self
-    attr_accessor :configuration
+    attr_writer :configuration
   end
 
   def self.configuration
@@ -70,6 +71,4 @@ module RailsCrawler
 end
 
 # Load Rails integration if Rails is present
-if defined?(Rails)
-  require_relative "rails_crawler/railtie"
-end
+require_relative "rails_crawler/railtie" if defined?(Rails)
