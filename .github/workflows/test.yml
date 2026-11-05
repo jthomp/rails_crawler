@@ -42,4 +42,4 @@ jobs:
         bundler-cache: true
         
     - name: Run RuboCop
-      run: bundle exec rubocop || true # Don't fail on style issues initially
+      run: bundle exec rubocop

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Suppress RubyGems platform warnings
 $VERBOSE = nil
 
@@ -112,7 +114,8 @@ namespace :crawler do
     puts "   Output Format: #{config.output_format}"
     puts "   Output File: #{config.output_file || "Console only"}"
     puts "   Exclude Patterns: #{config.exclude_patterns.map(&:source).join(", ")}"
-    puts "   Include Patterns: #{config.include_patterns.any? ? config.include_patterns.map(&:source).join(", ") : "All URLs"}"
+    include_patterns = config.include_patterns.map(&:source)
+    puts "   Include Patterns: #{include_patterns.any? ? include_patterns.join(", ") : "All URLs"}"
     puts "   Model Checks: #{config.model_checks.map(&:label).join(", ")}"
     puts "   Static Paths: #{config.static_paths.any? ? config.static_paths.join(", ") : "None"}"
   end

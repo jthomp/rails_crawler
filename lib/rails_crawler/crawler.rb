@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "net/http"
 require "uri"
 require "nokogiri"
@@ -6,6 +8,8 @@ require "concurrent"
 require "colorize"
 
 module RailsCrawler
+  # Fetches pages starting from the base URL, follows the links it finds and
+  # records failed pages and broken links.
   class Crawler
     attr_reader :base_url, :visited_urls, :failed_pages, :broken_links, :options
 
@@ -26,7 +30,6 @@ module RailsCrawler
         puts "🔧 max_concurrent setting: #{@options[:max_concurrent].inspect} (#{@options[:max_concurrent].class})"
       end
 
-      initial_urls = get_initial_urls
       @url_queue.concat(initial_urls)
 
       # Always use sequential processing to avoid Ruby closure bugs
@@ -54,7 +57,7 @@ module RailsCrawler
         @visited_urls.add(url)
         count = @pages_checked.increment
 
-        show_progress if count % 5 == 0 || ENV["VERBOSE"]
+        show_progress if (count % 5).zero? || ENV["VERBOSE"]
 
         begin
           uri = URI(url)
@@ -75,9 +78,8 @@ module RailsCrawler
           when 300..399
             location = response["location"]
             if location
-              if ENV["VERBOSE"] || ENV["DEBUG_WEBMOCK"]
-                puts "  → #{url} redirects to #{location} (#{response.code})".colorize(:yellow)
-              end
+              verbose = ENV["VERBOSE"] || ENV["DEBUG_WEBMOCK"]
+              puts "  → #{url} redirects to #{location} (#{response.code})".colorize(:yellow) if verbose
               resolved_location = resolve_url(url, location)
               @url_queue << resolved_location unless @visited_urls.include?(resolved_location)
             end
@@ -104,7 +106,7 @@ module RailsCrawler
           }
         end
 
-        sleep(@options[:delay_between_requests]) if @options[:delay_between_requests] > 0
+        sleep(@options[:delay_between_requests]) if @options[:delay_between_requests].positive?
       end
 
       show_final_progress
@@ -117,7 +119,7 @@ module RailsCrawler
 
     private
 
-    def get_initial_urls
+    def initial_urls
       urls = [@base_url]
 
       # If running in Rails context, get URLs from routes
@@ -148,16 +150,17 @@ module RailsCrawler
     def show_progress
       count = @pages_checked.value
       elapsed = Time.now - @start_time
-      rate = count > 0 ? (count / elapsed).round(1) : 0
+      rate = count.positive? ? (count / elapsed).round(1) : 0
 
-      print "\r🕷️  Checked: #{count} pages | Rate: #{rate}/sec | Queue: #{@url_queue.length} | Failed: #{@failed_pages.length}     "
+      print "\r🕷️  Checked: #{count} pages | Rate: #{rate}/sec | Queue: #{@url_queue.length} | " \
+            "Failed: #{@failed_pages.length}     "
       $stdout.flush
     end
 
     def show_final_progress
       count = @pages_checked.value
       elapsed = Time.now - @start_time
-      rate = count > 0 ? (count / elapsed).round(1) : 0
+      rate = count.positive? ? (count / elapsed).round(1) : 0
 
       puts "\n✅ Crawl completed: #{count} pages in #{elapsed.round(1)}s (#{rate}/sec)"
     end
@@ -169,7 +172,7 @@ module RailsCrawler
       count = @pages_checked.increment
 
       # Show progress every 5 pages or if verbose
-      show_progress if count % 5 == 0 || ENV["VERBOSE"]
+      show_progress if (count % 5).zero? || ENV["VERBOSE"]
 
       begin
         uri = URI(url)
@@ -215,7 +218,7 @@ module RailsCrawler
         }
       end
 
-      sleep(@options[:delay_between_requests]) if @options[:delay_between_requests] > 0
+      sleep(@options[:delay_between_requests]) if @options[:delay_between_requests].positive?
     end
 
     def extract_and_queue_links(page_url, html)

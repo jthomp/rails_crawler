@@ -3,6 +3,7 @@
 require "rails/railtie"
 
 module RailsCrawler
+  # Loads the crawler rake tasks and a default base URL into a Rails app.
   class Railtie < Rails::Railtie
     railtie_name :rails_crawler
 

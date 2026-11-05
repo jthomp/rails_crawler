@@ -5,6 +5,7 @@ require "csv"
 require "colorize"
 
 module RailsCrawler
+  # The result of a crawl, written to the console, a JSON file or a CSV file.
   class Report
     attr_reader :visited_urls, :failed_pages, :broken_links
 
@@ -44,7 +45,7 @@ module RailsCrawler
     private
 
     def generate_console_report
-      puts "\n" + "=" * 60
+      puts "\n#{"=" * 60}"
       puts "🕷️  CRAWL REPORT".colorize(:blue).bold
       puts "=" * 60
 

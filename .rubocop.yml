@@ -1,8 +1,52 @@
 AllCops:
-  TargetRubyVersion: 3.1
+  # Matches required_ruby_version in the gemspec.
+  TargetRubyVersion: 3.0
+  SuggestExtensions: false
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
+
+# Multi-line hash, array and heredoc literals are data, not logic. Max is 15
+# rather than 10 for Configuration#initialize, a plain list of defaults.
+Metrics/MethodLength:
+  Max: 15
+  CountAsOne: [array, hash, heredoc]
+  Exclude:
+    - lib/rails_crawler/crawler.rb
+    - lib/rails_crawler/report.rb
+
+Metrics/ClassLength:
+  CountAsOne: [array, hash, heredoc]
+  Exclude:
+    - lib/rails_crawler/crawler.rb
+
+# describe/context blocks, rake namespaces, the gemspec and the option parser
+# are long by nature.
+Metrics/BlockLength:
+  CountAsOne: [array, hash, heredoc]
+  Exclude:
+    - spec/**/*
+    - "**/*.rake"
+    - "*.gemspec"
+    - exe/rails_crawler
+
+# The crawl loop and the report writers are long, branchy methods. Splitting
+# them up is a refactoring for its own change; until then they are exempt
+# while the rest of the code is held to the defaults.
+Metrics/AbcSize:
+  Exclude:
+    - lib/rails_crawler/crawler.rb
+    - lib/rails_crawler/report.rb
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - lib/rails_crawler/crawler.rb
+    - lib/rails_crawler/report.rb
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - lib/rails_crawler/crawler.rb
+    - lib/rails_crawler/report.rb
