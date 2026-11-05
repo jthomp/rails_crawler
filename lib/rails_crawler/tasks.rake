@@ -2,14 +2,25 @@
 $VERBOSE = nil
 
 namespace :crawler do
-  desc "Crawl the entire site for broken pages and links"
-  task :crawl => :environment do
+  # BASE_URL, or the configured base URL, as an absolute URL. Exits when
+  # there is none or it cannot be crawled.
+  resolve_base_url = lambda do
     base_url = ENV["BASE_URL"] || RailsCrawler.configuration.base_url
 
     if base_url.nil?
       puts "❌ No base URL configured. Set BASE_URL environment variable or configure in initializer.".colorize(:red)
       exit 1
     end
+
+    RailsCrawler.normalize_base_url(base_url)
+  rescue RailsCrawler::Error => e
+    puts "❌ #{e.message}".colorize(:red)
+    exit 1
+  end
+
+  desc "Crawl the entire site for broken pages and links"
+  task :crawl => :environment do
+    base_url = resolve_base_url.call
 
     options = {}
     options[:output_format] = ENV["FORMAT"].to_sym if ENV["FORMAT"]
@@ -30,15 +41,9 @@ namespace :crawler do
 
   desc "Check every model-backed page (products, categories, pages, articles, FAQs, zones, ...)"
   task :crawl_models => :environment do
-    base_url = ENV["BASE_URL"] || RailsCrawler.configuration.base_url
-
-    if base_url.nil?
-      puts "❌ No base URL configured. Set BASE_URL environment variable or configure in initializer.".colorize(:red)
-      exit 1
-    end
+    base_url = resolve_base_url.call
 
     config = RailsCrawler.configuration
-    base_url = base_url.chomp("/")
     checked_urls = []
     failed_pages = []
 

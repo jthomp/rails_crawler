@@ -10,7 +10,7 @@ module RailsCrawler
     attr_reader :base_url, :visited_urls, :failed_pages, :broken_links, :options
 
     def initialize(base_url, options = {})
-      @base_url = base_url.chomp("/")
+      @base_url = RailsCrawler.normalize_base_url(base_url)
       @options = RailsCrawler.configuration.to_h.merge(options)
       @visited_urls = Concurrent::Set.new
       @failed_pages = Concurrent::Array.new

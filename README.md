@@ -125,7 +125,7 @@ end
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `base_url` | Base URL to crawl | `nil` (required) |
+| `base_url` | Base URL to crawl. Without a scheme, `https://` is assumed (`http://` for `localhost` and other loopback hosts) | `nil` (required) |
 | `max_concurrent` | Maximum concurrent requests | `5` |
 | `delay_between_requests` | Delay between requests (seconds) | `0.1` |
 | `follow_external_links` | Follow links to external domains | `false` |

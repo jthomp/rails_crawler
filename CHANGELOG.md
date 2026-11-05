@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-05
+
+- Fix every request failing when the base URL has no scheme (`BASE_URL=www.example.com`).
+  Such a URL now gets `https://`, or `http://` for a loopback host such as `localhost:3000`.
+- A base URL that is not http(s), or has no host, is rejected up front with a clear error
+  rather than reported as a failure on every page.
+
 ## [0.4.0] - 2026-10-29
 
 - Add support for Page, Article, ArticleTag, Faq and Zone pages, alongside Product and Category.

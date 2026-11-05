@@ -24,6 +24,37 @@ RSpec.describe RailsCrawler do
     end
   end
 
+  describe ".normalize_base_url" do
+    it "leaves an http(s) URL alone, apart from a trailing slash" do
+      expect(RailsCrawler.normalize_base_url("http://example.com/")).to eq("http://example.com")
+      expect(RailsCrawler.normalize_base_url("https://example.com/shop")).to eq("https://example.com/shop")
+    end
+
+    it "adds https to a host given without a scheme" do
+      expect(RailsCrawler.normalize_base_url("www.example.com")).to eq("https://www.example.com")
+      expect(RailsCrawler.normalize_base_url("//www.example.com/")).to eq("https://www.example.com")
+      expect(RailsCrawler.normalize_base_url(" example.com:8443/shop ")).to eq("https://example.com:8443/shop")
+    end
+
+    it "adds http to a loopback host given without a scheme" do
+      expect(RailsCrawler.normalize_base_url("localhost:3000")).to eq("http://localhost:3000")
+      expect(RailsCrawler.normalize_base_url("127.0.0.1:3000/")).to eq("http://127.0.0.1:3000")
+      expect(RailsCrawler.normalize_base_url("[::1]:3000")).to eq("http://[::1]:3000")
+      expect(RailsCrawler.normalize_base_url("app.localhost")).to eq("http://app.localhost")
+    end
+
+    it "rejects a blank URL" do
+      expect { RailsCrawler.normalize_base_url(" ") }.to raise_error(RailsCrawler::Error, "Base URL is required")
+    end
+
+    it "rejects a URL that is not http(s) or has no host" do
+      ["ftp://example.com", "https://", "not a url"].each do |url|
+        expect { RailsCrawler.normalize_base_url(url) }
+          .to raise_error(RailsCrawler::Error, "Base URL must be an http(s) URL, got #{url.inspect}")
+      end
+    end
+  end
+
   describe ".crawl" do
     before do
       # Suppress console output during tests
@@ -44,6 +75,18 @@ RSpec.describe RailsCrawler do
       
       expect(report).to be_a(RailsCrawler::Report)
       expect(report.visited_urls).to include("http://example.com")
+      expect(report.healthy?).to be true
+    end
+
+    it "crawls a base URL given without a scheme" do
+      WebMock.stub_request(:get, "https://www.example.com")
+        .to_return(status: 200, body: "<html><body><a href='/test'>Test</a></body></html>")
+      WebMock.stub_request(:get, "https://www.example.com/test")
+        .to_return(status: 200, body: "<html><body>Test page</body></html>")
+
+      report = RailsCrawler.crawl("www.example.com")
+
+      expect(report.visited_urls).to contain_exactly("https://www.example.com", "https://www.example.com/test")
       expect(report.healthy?).to be true
     end
 
