@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+- Development setup works on Ruby 4.0: the unused `vcr` development dependency is removed
+  (vcr 6.3.1 fails to load on Ruby 4.0, which no longer ships `CGI.parse`), and the locked
+  nokogiri is updated to 1.19.7, which has precompiled gems for Ruby 3.2 through 4.0.
+- CI runs the specs on Ruby 3.4 and 4.0 as well as 3.2 and 3.3.
+
 ## [0.4.0] - 2026-10-29
 
 - Add support for Page, Article, ArticleTag, Faq and Zone pages, alongside Product and Category.
