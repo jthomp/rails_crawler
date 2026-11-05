@@ -23,8 +23,8 @@ RailsCrawler.configure do |config|
   # Patterns to exclude from crawling (regexes)
   config.exclude_patterns = [
     /\.(pdf|zip|tar|gz|jpg|jpeg|png|gif|svg|ico)$/i,
-    /\/admin/,
-    /\/api/
+    %r{/admin},
+    %r{/api}
   ]
 
   # Patterns to include (if specified, only URLs matching these will be crawled)

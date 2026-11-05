@@ -10,7 +10,7 @@ module RailsCrawler
       load "rails_crawler/tasks.rake"
     end
 
-    initializer "rails_crawler.configure" do |app|
+    initializer "rails_crawler.configure" do |_app|
       # Set default base URL from Rails if not configured
       if RailsCrawler.configuration.base_url.nil?
         if Rails.env.development?

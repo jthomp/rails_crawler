@@ -19,7 +19,7 @@ OptionParser.new do |opts|
     options[:delay_between_requests] = n
   end
 
-  opts.on("-f", "--format FORMAT", [:console, :json, :csv], "Output format (console, json, csv)") do |format|
+  opts.on("-f", "--format FORMAT", %i[console json csv], "Output format (console, json, csv)") do |format|
     options[:output_format] = format
   end
 

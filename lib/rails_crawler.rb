@@ -40,6 +40,4 @@ module RailsCrawler
 end
 
 # Load Rails integration if Rails is present
-if defined?(Rails)
-  require_relative "rails_crawler/railtie"
-end
+require_relative "rails_crawler/railtie" if defined?(Rails)

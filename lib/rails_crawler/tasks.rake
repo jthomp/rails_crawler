@@ -3,7 +3,7 @@ $VERBOSE = nil
 
 namespace :crawler do
   desc "Crawl the entire site for broken pages and links"
-  task :crawl => :environment do
+  task crawl: :environment do
     base_url = ENV["BASE_URL"] || RailsCrawler.configuration.base_url
 
     if base_url.nil?
@@ -23,13 +23,13 @@ namespace :crawler do
     puts
 
     report = RailsCrawler.crawl(base_url, options)
-    
+
     # Exit with error code if issues found (useful for CI/CD)
     exit 1 unless report.healthy?
   end
 
   desc "Check every model-backed page (products, categories, pages, articles, FAQs, zones, ...)"
-  task :crawl_models => :environment do
+  task crawl_models: :environment do
     base_url = ENV["BASE_URL"] || RailsCrawler.configuration.base_url
 
     if base_url.nil?
