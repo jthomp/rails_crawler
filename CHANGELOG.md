@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+- Links that are not pages (`mailto:`, `tel:`, `javascript:`, `sms:` and any other
+  non-http(s) scheme) are skipped instead of being fetched and reported as failed pages,
+  which made every crawl of a site with a phone or email link end "ISSUES FOUND".
 - Development setup works on Ruby 4.0: the unused `vcr` development dependency is removed
   (vcr 6.3.1 fails to load on Ruby 4.0, which no longer ships `CGI.parse`), and the locked
   nokogiri is updated to 1.19.7, which has precompiled gems for Ruby 3.2 through 4.0.

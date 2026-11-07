@@ -99,6 +99,37 @@ RSpec.describe RailsCrawler::Crawler do
       expect(failed_page[:status]).to eq(404)
     end
 
+    context "with links that are not pages" do
+      let(:homepage_html) do
+        <<~HTML
+          <html>
+            <body>
+              <a href="/about">About</a>
+              <a href="tel:18665866283">Call</a>
+              <a href="mailto:orders@example.com">Email</a>
+              <a href="javascript:void(0)">Menu</a>
+              <a href="sms:+18665866283">Text</a>
+            </body>
+          </html>
+        HTML
+      end
+
+      it "neither fetches nor reports mailto, tel, javascript and sms links" do
+        report = nil
+
+        Timeout.timeout(10) do
+          report = crawler.crawl_site
+        end
+
+        visited = crawler.visited_urls.to_a
+        expect(visited).to include("http://example.com", "http://example.com/about")
+        expect(visited.grep(/\A(tel|mailto|javascript|sms):/)).to be_empty
+        expect(report.failed_pages).to be_empty
+        expect(report.broken_links).to be_empty
+        expect(report).to be_healthy
+      end
+    end
+
     it "does not follow external links by default" do
       report = nil
 

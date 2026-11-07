@@ -234,6 +234,7 @@ module RailsCrawler
 
           begin
             link_url = resolve_url(page_url, href)
+            next unless fetchable?(link_url)
             next if should_exclude_url?(link_url)
 
             # Check if it"s an internal link or if we should follow external links
@@ -265,6 +266,13 @@ module RailsCrawler
       rescue StandardError => e
         puts "  ⚠️  Error parsing HTML for #{page_url}: #{e.message}".colorize(:yellow) if ENV["VERBOSE"]
       end
+    end
+
+    # Only http(s) links can be fetched. mailto:, tel:, javascript: and the
+    # like are page features, not pages, so they are neither queued nor
+    # reported as failures.
+    def fetchable?(url)
+      %w[http https].include?(URI(url).scheme)
     end
 
     def resolve_url(base_url, href)
