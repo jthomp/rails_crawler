@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [0.4.2] - 2026-11-06
+
 - Links that are not pages (`mailto:`, `tel:`, `javascript:`, `sms:` and any other
   non-http(s) scheme) are skipped instead of being fetched and reported as failed pages,
   which made every crawl of a site with a phone or email link end "ISSUES FOUND".
